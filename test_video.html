@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instagram Video Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .video-container {
+            max-width: 540px;
+            margin: 20px auto;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .info {
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 15px;
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+        }
+        .unmute-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .unmute-button:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        .status {
+            margin: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="status">
+        <h3>Instagram Video Test</h3>
+        <div id="status">Loading...</div>
+    </div>
+    
+    <div class="video-container">
+        <video id="test-video" controls muted loop preload="metadata">
+            <source id="video-source" src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="info">
+            <div id="video-title">Test Video</div>
+            <div id="video-author">@test</div>
+        </div>
+        <div id="unmute-btn" class="unmute-button">🔊 Click to unmute</div>
+    </div>
+
+    <script>
+        async function testInstagramVideo() {
+            const statusDiv = document.getElementById('status');
+            const video = document.getElementById('test-video');
+            const source = document.getElementById('video-source');
+            const titleDiv = document.getElementById('video-title');
+            const authorDiv = document.getElementById('video-author');
+            const unmuteBtn = document.getElementById('unmute-btn');
+            
+            // Add unmute functionality
+            function unmuteVideo() {
+                video.muted = false;
+                video.volume = 0.8;
+                
+                // Hide unmute button with animation
+                unmuteBtn.style.opacity = '0';
+                unmuteBtn.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                
+                setTimeout(() => {
+                    unmuteBtn.style.display = 'none';
+                }, 300);
+                
+                console.log('Video unmuted');
+            }
+            
+            // Add click handlers
+            unmuteBtn.addEventListener('click', unmuteVideo);
+            video.addEventListener('click', () => {
+                if (video.muted) {
+                    unmuteVideo();
+                }
+            });
+            
+            try {
+                statusDiv.innerHTML = 'Fetching Instagram video data...';
+                
+                const response = await fetch('/get-oembed?url=https://www.instagram.com/reel/DMEuaaxSqwh/');
+                const data = await response.json();
+                
+                if (data.html) {
+                    statusDiv.innerHTML = 'Video data received. Extracting URL...';
+                    
+                    // Extract video URL from the HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data.html, 'text/html');
+                    const videoElement = doc.querySelector('video');
+                    const sourceElement = doc.querySelector('source');
+                    
+                    if (sourceElement && sourceElement.src) {
+                        const videoUrl = sourceElement.src;
+                        const poster = videoElement.getAttribute('poster');
+                        
+                        statusDiv.innerHTML = `Video URL extracted: ${videoUrl.substring(0, 50)}...`;
+                        
+                        // Set the source
+                        source.src = videoUrl;
+                        if (poster) video.poster = poster;
+                        
+                        // Set title and author
+                        titleDiv.textContent = data.title || 'Instagram Video';
+                        authorDiv.textContent = '@' + (data.author_name || 'Instagram User');
+                        
+                        // Try to load the video
+                        video.load();
+                        
+                        video.addEventListener('loadeddata', () => {
+                            statusDiv.innerHTML = '✅ Video loaded successfully! Click the unmute button to hear audio.';
+                            statusDiv.style.borderColor = '#28a745';
+                        });
+                        
+                        video.addEventListener('error', (e) => {
+                            statusDiv.innerHTML = '❌ Video failed to load: ' + e.type;
+                            statusDiv.style.borderColor = '#dc3545';
+                        });
+                        
+                        // Try to autoplay
+                        video.play().catch(e => {
+                            console.log('Autoplay blocked:', e);
+                        });
+                        
+                    } else {
+                        statusDiv.innerHTML = '❌ No video URL found in response';
+                        statusDiv.style.borderColor = '#dc3545';
+                    }
+                } else {
+                    statusDiv.innerHTML = '❌ No HTML in response';
+                    statusDiv.style.borderColor = '#dc3545';
+                }
+                
+            } catch (error) {
+                statusDiv.innerHTML = '❌ Error: ' + error.message;
+                statusDiv.style.borderColor = '#dc3545';
+            }
+        }
+        
+        // Start the test
+        testInstagramVideo();
+    </script>
+</body>
+</html> 

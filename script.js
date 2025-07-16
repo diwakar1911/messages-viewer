@@ -103,28 +103,72 @@ async function loadVideo() {
                 document.body.appendChild(newScript);
             }
         } else if (platform === 'instagram') {
-            // Instagram embeds use the blockquote format with embed script
-            const scriptTag = embedWrapper.querySelector('script');
-            if (scriptTag) {
-                // Load Instagram embed script if not already loaded
-                if (!window.instgrm) {
-                    const instagramScript = document.createElement('script');
-                    instagramScript.src = '//www.instagram.com/embed.js';
-                    instagramScript.async = true;
-                    document.head.appendChild(instagramScript);
+            // Instagram direct video with prominent unmute button
+            console.log('Loading Instagram video with unmute button...');
+            
+            const videoElement = embedWrapper.querySelector('video');
+            const unmuteButton = embedWrapper.querySelector('.unmute-button');
+            
+            if (videoElement && unmuteButton) {
+                // Add click handler to unmute button
+                unmuteButton.addEventListener('click', function() {
+                    videoElement.muted = false;
+                    videoElement.volume = 0.8;
                     
-                    // Process Instagram embeds after script loads
-                    instagramScript.onload = function() {
-                        if (window.instgrm && window.instgrm.Embeds) {
-                            window.instgrm.Embeds.process();
-                        }
-                    };
-                } else {
-                    // Script already loaded, just process the new embed
-                    if (window.instgrm && window.instgrm.Embeds) {
-                        window.instgrm.Embeds.process();
+                    // Hide the unmute button with animation
+                    unmuteButton.style.opacity = '0';
+                    unmuteButton.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                    
+                    setTimeout(() => {
+                        unmuteButton.style.display = 'none';
+                    }, 300);
+                    
+                    console.log('Instagram video unmuted');
+                });
+                
+                // Also allow clicking the video itself to unmute
+                videoElement.addEventListener('click', function() {
+                    if (videoElement.muted) {
+                        videoElement.muted = false;
+                        videoElement.volume = 0.8;
+                        
+                        // Hide the unmute button
+                        unmuteButton.style.opacity = '0';
+                        unmuteButton.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                        
+                        setTimeout(() => {
+                            unmuteButton.style.display = 'none';
+                        }, 300);
+                        
+                        console.log('Instagram video unmuted via video click');
                     }
-                }
+                });
+                
+                // Add hover effect to unmute button
+                unmuteButton.addEventListener('mouseenter', function() {
+                    unmuteButton.style.background = 'rgba(255,255,255,0.2)';
+                    unmuteButton.style.transform = 'translate(-50%, -50%) scale(1.05)';
+                });
+                
+                unmuteButton.addEventListener('mouseleave', function() {
+                    unmuteButton.style.background = 'rgba(0,0,0,0.8)';
+                    unmuteButton.style.transform = 'translate(-50%, -50%) scale(1)';
+                });
+                
+                // Log when video loads
+                videoElement.addEventListener('loadeddata', function() {
+                    console.log('Instagram video loaded successfully');
+                });
+                
+                // Log any errors
+                videoElement.addEventListener('error', function(e) {
+                    console.error('Instagram video error:', e);
+                });
+                
+                // Try to play the video
+                videoElement.play().catch(e => {
+                    console.log('Autoplay blocked:', e);
+                });
             }
         }
 
