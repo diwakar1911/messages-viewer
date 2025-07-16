@@ -103,13 +103,28 @@ async function loadVideo() {
                 document.body.appendChild(newScript);
             }
         } else if (platform === 'instagram') {
-            // Instagram embeds are now using iframe, no additional script needed
-            const iframe = embedWrapper.querySelector('iframe');
-            if (iframe) {
-                // Ensure iframe is responsive
-                iframe.style.width = '100%';
-                iframe.style.maxWidth = '400px';
-                iframe.style.height = '480px';
+            // Instagram embeds use the blockquote format with embed script
+            const scriptTag = embedWrapper.querySelector('script');
+            if (scriptTag) {
+                // Load Instagram embed script if not already loaded
+                if (!window.instgrm) {
+                    const instagramScript = document.createElement('script');
+                    instagramScript.src = '//www.instagram.com/embed.js';
+                    instagramScript.async = true;
+                    document.head.appendChild(instagramScript);
+                    
+                    // Process Instagram embeds after script loads
+                    instagramScript.onload = function() {
+                        if (window.instgrm && window.instgrm.Embeds) {
+                            window.instgrm.Embeds.process();
+                        }
+                    };
+                } else {
+                    // Script already loaded, just process the new embed
+                    if (window.instgrm && window.instgrm.Embeds) {
+                        window.instgrm.Embeds.process();
+                    }
+                }
             }
         }
 
