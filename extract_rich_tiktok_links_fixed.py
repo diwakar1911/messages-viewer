@@ -83,7 +83,7 @@ def extract_urls_from_binary(binary_data):
     
     return urls
 
-def extract_rich_tiktok_links(days_back=30):
+def extract_rich_tiktok_links(days_back=60, from_sender=None):  # Extended default to 60 days
     tiktok_links = {}  # Use a dictionary to store unique links, keyed by URL
 
     try:
@@ -96,34 +96,52 @@ def extract_rich_tiktok_links(days_back=30):
         mac_epoch = datetime.datetime(2001, 1, 1, tzinfo=datetime.timezone.utc)
         cutoff_mac_time = (cutoff_datetime - mac_epoch).total_seconds() * 1000000000  # Convert to nanoseconds
 
-        query = f"""
+        # Build the query with optional sender filtering
+        base_query = """
             SELECT
                 message.text,
                 message.date,
                 handle.id AS sender,
-                message.attributedBody
+                message.attributedBody,
+                message.is_from_me
             FROM
                 message
-            JOIN
+            LEFT JOIN
                 handle ON message.handle_id = handle.ROWID
             WHERE
-                message.is_from_me = 0
-                AND message.date >= {int(cutoff_mac_time)}
-            ORDER BY
-                message.date DESC;
+                message.date >= {cutoff_time}
         """
+        
+        # Add sender filtering if specified
+        if from_sender:
+            if from_sender.lower() == 'you' or from_sender.lower() == 'me':
+                base_query += " AND message.is_from_me = 1"
+            else:
+                # Only include messages from the specific sender (not from user)
+                base_query += f" AND message.is_from_me = 0 AND handle.id = '{from_sender}'"
+        
+        base_query += " ORDER BY message.date DESC;"
+        
+        query = base_query.format(cutoff_time=int(cutoff_mac_time))
         cursor.execute(query)
         rows = cursor.fetchall()
         conn.close()
 
-        print(f"Processing {len(rows)} messages...")
+        sender_filter_msg = f" from {from_sender}" if from_sender else ""
+        print(f"Processing {len(rows)} messages{sender_filter_msg} from the last {days_back} days...")
 
         for row in rows:
-            text_content, mac_time, sender, attributed_body_blob = row
+            text_content, mac_time, sender, attributed_body_blob, is_from_me = row
             
             timestamp = mac_time_to_datetime(mac_time)
             if not timestamp:
                 continue
+
+            # Handle sender display
+            if is_from_me:
+                sender_display = "You"
+            else:
+                sender_display = sender or "Unknown"
 
             current_message_urls = set()
 
@@ -145,7 +163,7 @@ def extract_rich_tiktok_links(days_back=30):
                     tiktok_links[url] = {
                         'url': url,
                         'timestamp': timestamp,
-                        'sender': sender
+                        'sender': sender_display
                     }
         
         # Convert datetime objects to ISO format for JSON serialization and sort by timestamp
@@ -172,7 +190,7 @@ def extract_rich_tiktok_links(days_back=30):
             print(f"- Oldest: {final_links[-1]['timestamp']}")
             print(f"- Sample URLs:")
             for i, link in enumerate(final_links[:5]):
-                print(f"  {i+1}. {link['url']}")
+                print(f"  {i+1}. {link['url']} (from {link['sender']})")
         
         return final_links
 
@@ -182,4 +200,7 @@ def extract_rich_tiktok_links(days_back=30):
         return []
 
 if __name__ == "__main__":
-    extract_rich_tiktok_links(days_back=30) 
+    # Filter to only show TikToks from girlfriend
+    # Based on the data, her phone number appears to be +14155176486
+    girlfriend_number = "+14155176486"
+    extract_rich_tiktok_links(days_back=60, from_sender=girlfriend_number) 
