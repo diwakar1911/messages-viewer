@@ -2,6 +2,7 @@ const videoContainer = document.getElementById('video-container');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 const videoCounter = document.querySelector('.video-counter');
+const videoTimeRange = document.querySelector('.video-time-range');
 const videoTimestamp = document.querySelector('.video-timestamp');
 const videoSender = document.querySelector('.video-sender');
 
@@ -16,6 +17,11 @@ async function fetchTikTokLinks() {
         }
         tiktokLinks = await response.json();
         if (tiktokLinks.length > 0) {
+            // Calculate and display time range
+            const firstVideoDate = new Date(tiktokLinks[tiktokLinks.length - 1].timestamp);
+            const lastVideoDate = new Date(tiktokLinks[0].timestamp);
+            videoTimeRange.textContent = `Videos from ${firstVideoDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })} to ${lastVideoDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}`;
+
             loadVideo();
         } else {
             alert('No TikTok links found. Please run the iMessage extractor first.');
