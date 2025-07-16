@@ -75,6 +75,18 @@ video {
     border-radius: 8px;
 }
 
+/* Instagram video specific styling */
+.instagram-video-container {
+    max-width: 325px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+}
+
+.instagram-video-container video {
+    max-width: 325px !important;
+    width: 100% !important;
+}
+
 .video-counter {
     font-size: 16px;
     font-weight: bold;

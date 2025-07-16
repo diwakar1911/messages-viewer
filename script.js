@@ -103,58 +103,12 @@ async function loadVideo() {
                 document.body.appendChild(newScript);
             }
         } else if (platform === 'instagram') {
-            // Instagram direct video with prominent unmute button
-            console.log('Loading Instagram video with unmute button...');
+            // Instagram direct video - no special handling needed
+            console.log('Loading Instagram video...');
             
             const videoElement = embedWrapper.querySelector('video');
-            const unmuteButton = embedWrapper.querySelector('.unmute-button');
             
-            if (videoElement && unmuteButton) {
-                // Add click handler to unmute button
-                unmuteButton.addEventListener('click', function() {
-                    videoElement.muted = false;
-                    videoElement.volume = 0.8;
-                    
-                    // Hide the unmute button with animation
-                    unmuteButton.style.opacity = '0';
-                    unmuteButton.style.transform = 'translate(-50%, -50%) scale(0.8)';
-                    
-                    setTimeout(() => {
-                        unmuteButton.style.display = 'none';
-                    }, 300);
-                    
-                    console.log('Instagram video unmuted');
-                });
-                
-                // Also allow clicking the video itself to unmute
-                videoElement.addEventListener('click', function() {
-                    if (videoElement.muted) {
-                        videoElement.muted = false;
-                        videoElement.volume = 0.8;
-                        
-                        // Hide the unmute button
-                        unmuteButton.style.opacity = '0';
-                        unmuteButton.style.transform = 'translate(-50%, -50%) scale(0.8)';
-                        
-                        setTimeout(() => {
-                            unmuteButton.style.display = 'none';
-                        }, 300);
-                        
-                        console.log('Instagram video unmuted via video click');
-                    }
-                });
-                
-                // Add hover effect to unmute button
-                unmuteButton.addEventListener('mouseenter', function() {
-                    unmuteButton.style.background = 'rgba(255,255,255,0.2)';
-                    unmuteButton.style.transform = 'translate(-50%, -50%) scale(1.05)';
-                });
-                
-                unmuteButton.addEventListener('mouseleave', function() {
-                    unmuteButton.style.background = 'rgba(0,0,0,0.8)';
-                    unmuteButton.style.transform = 'translate(-50%, -50%) scale(1)';
-                });
-                
+            if (videoElement) {
                 // Log when video loads
                 videoElement.addEventListener('loadeddata', function() {
                     console.log('Instagram video loaded successfully');

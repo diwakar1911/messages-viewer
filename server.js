@@ -8,6 +8,14 @@ const port = 3000;
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// Add cache control headers to prevent caching
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
+});
+
 app.get('/get-video-links', (req, res) => {
     const linksPath = path.join(__dirname, 'video-links.json');
     fs.readFile(linksPath, 'utf8', (err, data) => {
@@ -69,7 +77,7 @@ app.get('/get-oembed', async (req, res) => {
                         
                         const videoId = Date.now();
                         
-                        // Return simple direct video embed with prominent unmute button
+                        // Return simple direct video embed without muted attribute
                         return res.send({
                             type: 'video',
                             version: '1.0',
@@ -78,11 +86,10 @@ app.get('/get-oembed', async (req, res) => {
                             provider_name: 'Instagram',
                             provider_url: 'https://www.instagram.com',
                             html: `
-                                <div class="instagram-video-container" style="position: relative; width: 100%; max-width: 540px; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden;">
+                                <div class="instagram-video-container" style="position: relative; width: 100%; max-width: 325px; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden;">
                                     <video 
                                         id="instagram-video-${videoId}"
                                         controls 
-                                        muted 
                                         loop 
                                         style="width: 100%; height: auto; display: block;"
                                         poster="${result.thumbnail}"
@@ -92,17 +99,10 @@ app.get('/get-oembed', async (req, res) => {
                                         <source src="${result.video_url}" type="video/mp4">
                                         Your browser does not support the video tag.
                                     </video>
-                                    <div class="video-info" style="position: absolute; bottom: 50px; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; padding: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; pointer-events: none;">
-                                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">${result.title}</div>
-                                        <div style="font-size: 12px; opacity: 0.8;">@${result.uploader}</div>
-                                    </div>
-                                    <div id="unmute-btn-${videoId}" class="unmute-button" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 15px 25px; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; border: 2px solid white; transition: all 0.3s ease; z-index: 10;">
-                                        🔊 Click to unmute
-                                    </div>
                                 </div>
                             `,
-                            width: 540,
-                            height: Math.round(540 * 16/9),
+                            width: 325,
+                            height: Math.round(325 * 16/9),
                             thumbnail_url: result.thumbnail,
                             platform: 'instagram'
                         });
