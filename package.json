@@ -1,0 +1,18 @@
+{
+  "name": "messages-viewer",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo "Error: no test specified" && exit 1",
+    "extract-tiktoks": "python extract_rich_tiktok_links_v2.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.10.0",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}
